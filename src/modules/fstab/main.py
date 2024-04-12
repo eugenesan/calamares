@@ -151,18 +151,21 @@ class FstabGenerator(object):
         if not mapper_name or not luks_uuid:
             return None
 
-        # Skip keyfile and options if:
-        if (
-           # it's missing
-           ( not os.path.isfile(os.path.join(self.root_mount_point, "crypto_keyfile.bin")) ) or \
-           # root partition was not encrypted
-           ( any([p["mountPoint"] == "/"
-                  and "luksMapperName" not in p for p in self.partitions]) ) or \
-           # it's on root partition when /boot is unencrypted
-           ( partition["mountPoint"] == "/"
-                  and any([p["mountPoint"] == "/boot"
-                  and "luksMapperName" not in p for p in self.partitions]) )
-            ):
+        crypttab_options = self.crypttab_options
+        if os.path.isfile(os.path.join(self.root_mount_point, "crypto_keyfile.bin")):
+            password = "/crypto_keyfile.bin"
+        else:
+            password = "none"
+
+        # if root partition was not encrypted
+        if any([p["mountPoint"] == "/" and
+               "luksMapperName" not in p for p in self.partitions]):
+            crypttab_options = ""
+       # on root partition when /boot is unencrypted
+        elif partition["mountPoint"] == "/" and
+             any([p["mountPoint"] == "/boot"
+                 and "luksMapperName" not in p for p in self.partitions]):
+            crypttab_options = ""
             password = "none"
             crypttab_options = ""
         # Setup keyfile
