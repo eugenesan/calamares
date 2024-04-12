@@ -161,17 +161,13 @@ class FstabGenerator(object):
         if any([p["mountPoint"] == "/" and
                "luksMapperName" not in p for p in self.partitions]):
             crypttab_options = ""
-       # on root partition when /boot is unencrypted
+            password = "none"
+        # on root partition when /boot is unencrypted
         elif partition["mountPoint"] == "/" and
              any([p["mountPoint"] == "/boot"
                  and "luksMapperName" not in p for p in self.partitions]):
             crypttab_options = ""
             password = "none"
-            crypttab_options = ""
-        # Setup keyfile
-        else:
-            password = "/crypto_keyfile.bin"
-            crypttab_options = self.crypttab_options
 
         return dict(
             name=mapper_name,
